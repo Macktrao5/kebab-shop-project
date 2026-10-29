@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Kebab Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4 md:p-6 flex items-center justify-center">
+    <div class="w-full max-w-xl mx-auto">
+        <header class="text-center mb-6">
+            <h1 class="text-3xl font-extrabold text-yellow-500 mb-1">🛍️ Conferma e Paga</h1>
+            <p class="text-gray-400 text-sm">Inserisci i tuoi dati e procedi al pagamento sicuro.</p>
+        </header>
+
+        <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-xl">
+            <h2 class="text-lg font-bold text-yellow-400 mb-3 border-b border-gray-700 pb-2">Riepilogo Ordine</h2>
+            
+            <!-- LISTA PRODOTTI CON CONTROLLO QUANTITÀ [-] [+] E CESTINO -->
+            <div class="space-y-3 mb-4">
+                {% for key, item in carrello.items %}
+                    <div class="flex justify-between items-center text-sm border-b border-gray-700/50 pb-2 gap-3">
+                        <div class="flex-grow">
+                            <h4 class="font-bold text-white text-base">{{ item.nome }}</h4>
+                            {% if item.ingredienti_nomi %}
+                                <p class="text-xs text-yellow-400 mt-0.5">
+                                    <span class="font-semibold">Ingredienti:</span> {{ item.ingredienti_nomi|join:", " }}
+                                </p>
+                            {% endif %}
+                            
+                            <!-- SELETTORE DI QUANTITÀ CON TASTI [-] E [+] -->
+                            <div class="flex items-center gap-2 mt-1.5">
+                                <span class="text-xs text-gray-400">Qt:</span>
+                                <div class="flex items-center bg-gray-900 border border-gray-700 rounded-lg overflow-hidden">
+                                    <a href="{% url 'modifica_quantita_carrello' key 'diminuisci' %}" 
+                                    class="px-2.5 py-0.5 bg-gray-800 hover:bg-gray-700 text-yellow-400 font-bold transition text-sm flex items-center justify-center">
+                                        -
+                                    </a>
+                                    <span class="px-3 font-bold text-white text-xs">{{ item.quantita }}</span>
+                                    <a href="{% url 'modifica_quantita_carrello' key 'aumenta' %}" 
+                                    class="px-2.5 py-0.5 bg-gray-800 hover:bg-gray-700 text-yellow-400 font-bold transition text-sm flex items-center justify-center">
+                                        +
+                                    </a>
+                                </div>
+                                <span class="text-xs text-gray-400">x €{{ item.prezzo|floatformat:2 }}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <span class="text-yellow-400 font-bold text-base">€{{ item.totale_articolo|default:item.prezzo|floatformat:2 }}</span>
+                            <!-- CESTINO PER ELIMINARE INTERAMENTE LA VOCE -->
+                            <a href="{% url 'rimuovi_dal_carrello' key %}" 
+                            title="Rimuovi prodotto" 
+                            class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white p-1.5 rounded-lg border border-red-500/30 transition text-xs flex items-center justify-center">
+                                🗑️
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-4">
+                        <p class="text-gray-400 text-sm mb-2">Il tuo carrello è vuoto.</p>
+                        <a href="{% url 'menu' %}" class="text-xs text-yellow-400 underline">Torna al Menu per aggiungere prodotti</a>
+                    </div>
+                {% endfor %}
+            </div>
+            <!-- RIEPILOGO TOTALE E SCONTO -->
+            <div class="bg-gray-900/80 p-4 rounded-lg border border-gray-700 mb-6 space-y-1.5">
+                <div class="flex justify-between items-center text-xs text-gray-400">
+                    <span>Subtotale Prodotti:</span>
+                    <span class="font-semibold" id="subtotale-display">€{{ totale_lordo|floatformat:2 }}</span>
+                </div>
+
+                <div id="riga-sconto" class="flex justify-between items-center text-xs text-emerald-400 font-bold {% if sconto_valore == 0 %}hidden{% endif %}">
+                    <span id="label-sconto">🎟️ Coupon Applicato (-{{ sconto_percentuale }}%):</span>
+                    <span id="valore-sconto">- €{{ sconto_valore|floatformat:2 }}</span>
+                </div>
+
+                <div class="flex justify-between items-center text-lg font-extrabold text-white pt-2 border-t border-gray-700">
+                    <span>Totale da Pagare:</span>
+                    <span class="text-2xl text-green-400" id="totale-display">€{{ totale_complessivo|floatformat:2 }}</span>
+                </div>
+            </div>
+
+            <!-- CAMPO COUPON -->
+            <div class="bg-gray-900/50 p-3 rounded-lg border border-gray-700 mb-6">
+                <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Codice Promozionale / Coupon</label>
+                <div class="flex gap-2">
+                    <input type="text" id="input-coupon" placeholder="Es. KEBAB20" 
+                        value="{{ request.session.coupon_code|default:'' }}"
+                        class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm uppercase flex-grow focus:outline-none focus:ring-2 focus:ring-yellow-500 font-mono">
+                    <button type="button" onclick="applicaCouponAjax()" class="bg-yellow-500 hover:bg-yellow-400 text-gray-950 font-bold px-4 py-2 rounded-lg text-sm transition whitespace-nowrap">
+                        Applica
+                    </button>
+                </div>
+                <p id="msg-coupon" class="text-xs font-bold mt-1.5 {% if request.session.sconto_percentuale %}text-emerald-400{% else %}hidden{% endif %}">
+                    {% if request.session.sconto_percentuale %}✅ Coupon '{{ request.session.coupon_code }}' attivo (Sconto {{ request.session.sconto_percentuale }}%){% endif %}
+                </p>
+            </div>
+
+            <!-- FORM UNICO PER IL PAGAMENTO STRIPE -->
+            <form method="POST" action="{% url 'checkout' %}" class="space-y-4">
+                {% csrf_token %}
+                
+                <h3 class="text-md font-bold text-yellow-400 flex items-center gap-2">
+                    <span>📋</span> Dati di Consegna & Cliente
+                </h3>
+                
+                <!-- Modalità di Consegna -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Modalità Ordine *</label>
+                    <select name="tipo_consegna" id="tipo_consegna" onchange="aggiornaCampiConsegna()" 
+                            class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-yellow-500 font-bold text-sm">
+                        <option value="ritiro" {% if not request.session.numero_tavolo_qr %}selected{% endif %}>🛍️ Ritiro in Sede</option>
+                        <option value="tavolo" {% if request.session.numero_tavolo_qr %}selected{% endif %}>🍽️ Consumazione al Tavolo (Locale)</option>
+                        <option value="domicilio">🛵 Consegna a Domicilio</option>
+                    </select>
+                </div>
+
+                <!-- Nome e Cognome -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Il tuo Nome e Cognome *</label>
+                    <input type="text" name="nome_cliente" required placeholder="Es. Marco Rossi" 
+                        class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white text-sm focus:outline-none focus:border-yellow-500">
+                </div>
+
+                <!-- Telefono -->
+                <div id="campo_telefono">
+                    <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Telefono per Contatto *</label>
+                    <input type="tel" name="telefono" id="input_telefono" placeholder="Es. 340 123 4567" 
+                        class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white text-sm focus:outline-none focus:border-yellow-500">
+                </div>
+
+                <!-- Numero Tavolo -->
+                <div id="campo_tavolo" class="hidden">
+                    <label class="block text-xs font-bold text-yellow-400 uppercase mb-1">Numero / Nome del Tavolo *</label>
+                    <input type="text" name="numero_tavolo" id="input_tavolo" 
+                        value="{{ request.session.numero_tavolo_qr|default:'' }}" 
+                        placeholder="Es. Tavolo 1" 
+                        class="w-full bg-gray-900 border border-yellow-500 rounded-lg p-2.5 text-white text-sm focus:outline-none font-bold">
+                </div>
+
+                <!-- Indirizzo -->
+                <div id="campo_indirizzo" class="hidden">
+                    <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Indirizzo di Consegna *</label>
+                    <input type="text" name="indirizzo" id="input_indirizzo" placeholder="Es. Via Antonio Nanula 4" 
+                        class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white text-sm focus:outline-none focus:border-yellow-500">
+                </div>
+
+                <!-- PULSANTE PER STRIPE -->
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3.5 rounded-xl transition shadow-lg mt-6 text-base flex items-center justify-center gap-2">
+                    <span>Paga Ora su Stripe</span>
+                    <span class="text-xl">💳</span>
+                </button>
+            </form>
+
+            <div class="mt-4 text-center flex justify-between items-center text-xs">
+                <a href="{% url 'svuota_carrello' %}" class="text-red-400 hover:underline font-semibold">🗑️ Svuota Carrello</a>
+                <a href="{% url 'menu' %}" class="text-yellow-400 hover:underline">&larr; Torna al Menu</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const totaleLordoOriginale = {{ totale_lordo }};
+
+    function applicaCouponAjax() {
+        const codice = document.getElementById('input-coupon').value;
+        const msgElement = document.getElementById('msg-coupon');
+        const rigaSconto = document.getElementById('riga-sconto');
+        const labelSconto = document.getElementById('label-sconto');
+        const valoreSconto = document.getElementById('valore-sconto');
+        const totaleDisplay = document.getElementById('totale-display');
+
+        const formData = new FormData();
+        formData.append('coupon', codice);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch("{% url 'applica_coupon_ajax' %}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            msgElement.classList.remove('hidden', 'text-red-400', 'text-emerald-400');
+            if (data.success) {
+                msgElement.classList.add('text-emerald-400');
+                msgElement.innerText = "✅ " + data.message;
+                
+                const scontoVal = (totaleLordoOriginale * data.sconto_percentuale) / 100;
+                const nuovoTotale = Math.max(0, totaleLordoOriginale - scontoVal);
+
+                labelSconto.innerText = `🎟️ Coupon Applicato (-${data.sconto_percentuale}%):`;
+                valoreSconto.innerText = `- €${scontoVal.toFixed(2)}`;
+                totaleDisplay.innerText = `€${nuovoTotale.toFixed(2)}`;
+                rigaSconto.classList.remove('hidden');
+            } else {
+                msgElement.classList.add('text-red-400');
+                msgElement.innerText = "❌ " + data.message;
+            }
+        })
+        .catch(err => {
+            msgElement.classList.remove('hidden');
+            msgElement.classList.add('text-red-400');
+            msgElement.innerText = "❌ Errore durante l'applicazione del coupon.";
+        });
+    }
+
+    function aggiornaCampiConsegna() {
+        const tipo = document.getElementById('tipo_consegna').value;
+        const campoTel = document.getElementById('campo_telefono');
+        const inputTel = document.getElementById('input_telefono');
+        const campoTavolo = document.getElementById('campo_tavolo');
+        const inputTavolo = document.getElementById('input_tavolo');
+        const campoIndirizzo = document.getElementById('campo_indirizzo');
+        const inputIndirizzo = document.getElementById('input_indirizzo');
+
+        campoTel.classList.remove('hidden');
+        inputTel.required = true;
+        campoTavolo.classList.add('hidden');
+        inputTavolo.required = false;
+        campoIndirizzo.classList.add('hidden');
+        inputIndirizzo.required = false;
+
+        if (tipo === 'domicilio') {
+            campoIndirizzo.classList.remove('hidden');
+            inputIndirizzo.required = true;
+        } else if (tipo === 'tavolo') {
+            campoTel.classList.add('hidden');
+            inputTel.required = false;
+            campoTavolo.classList.remove('hidden');
+            inputTavolo.required = true;
+        }
+    }
+    aggiornaCampiConsegna();
+    </script>
+</body>
+</html>

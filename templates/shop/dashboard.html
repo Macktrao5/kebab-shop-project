@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benvenuti - Kebab Shop Barletta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen font-sans flex flex-col justify-between">
+
+    <div>
+        <header class="w-full bg-gray-900 border-b border-gray-800 px-4 py-3 shadow-md">
+            <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+                
+                <!-- Logo / Titolo -->
+                <a href="/" class="flex items-center gap-2 text-xl font-extrabold text-yellow-400">
+                    <span>🥙</span>
+                    <span>Kebab Shop Barletta</span>
+                </a>
+
+                <!-- Pulsanti di Navigazione -->
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">
+                    <a href="{% url 'menu' %}" class="flex-1 sm:flex-none text-center bg-yellow-500 hover:bg-yellow-400 text-gray-950 font-bold px-3 py-2 rounded-lg text-xs sm:text-sm shadow transition">
+                        📖 Menu
+                    </a>
+                </div>
+
+            </div>
+        </header>
+
+        <!-- Hero / Copertina del Locale -->
+        <div class="relative bg-gray-950 py-24 px-4 sm:px-6 lg:px-8 text-center overflow-hidden border-b border-gray-800">
+            <!-- Immagine con zoom ridotto e luminosità bilanciata -->
+            <div class="absolute inset-0 overflow-hidden flex items-center justify-center">
+                <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=1600" 
+                     class="w-full h-full object-cover scale-95 filter brightness-110 contrast-105 opacity-80" 
+                     alt="Interno Kebab Shop">
+            </div>
+            
+            <!-- Sfumatura generale molto leggera -->
+            <div class="absolute inset-0 bg-black/40"></div>
+            
+            <!-- Contenuto con sfondo applicato esclusivamente alle stringhe di testo -->
+            <div class="relative max-w-3xl mx-auto space-y-6 z-10">
+                <div>
+                    <span class="inline-block bg-yellow-500 text-gray-950 font-extrabold text-xs px-4 py-1.5 rounded-full uppercase tracking-widest shadow-md">
+                        Artigianale & di Qualità
+                    </span>
+                </div>
+                
+                <h1 class="text-4xl sm:text-6xl font-black tracking-tight leading-tight">
+                    <span class="box-decoration-clone bg-black/70 px-4 py-2 rounded-xl text-white shadow-lg inline-block">
+                        Il Vero Kebab di Barletta
+                    </span>
+                </h1>
+                
+                <p class="text-gray-100 text-base sm:text-xl font-medium leading-relaxed max-w-2xl mx-auto">
+                    <span class="box-decoration-clone bg-black/70 px-3 py-1.5 rounded-lg inline-block">
+                        Preparato ogni giorno con carne scelta, spezie autentiche, verdure freschissime e salse artigianali. Un'esplosione di gusto in ogni singolo morso.
+                    </span>
+                </p>
+                
+                <div class="pt-3 flex justify-center gap-4">
+                    <a href="{% url 'menu' %}" class="bg-yellow-500 hover:bg-yellow-400 text-gray-950 font-extrabold px-8 py-3.5 rounded-xl shadow-xl text-lg transition transform hover:scale-105 flex items-center gap-2">
+                        Esplora il Menu 🚀
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sezione Informazioni & Mappa -->
+        <main class="max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <!-- Info Locale -->
+            <div class="bg-gray-800 p-8 rounded-xl border border-gray-700 shadow-xl space-y-6">
+                <h3 class="text-2xl font-bold text-yellow-400 border-b border-gray-700 pb-3">📍 Dove Siamo & Orari</h3>
+                
+                <div class="space-y-4 text-gray-300">
+                    <p class="flex items-start gap-3">
+                        <span class="text-yellow-500 text-xl">🏠</span>
+                        <span><strong>Indirizzo:</strong> Via Antonio Nanula, Barletta (BT)</span>
+                    </p>
+                    <p class="flex items-start gap-3">
+                        <span class="text-yellow-500 text-xl">📞</span>
+                        <span><strong>Telefono / Asporto:</strong> +39 351 228 4639</span>
+                    </p>
+                    <p class="flex items-start gap-3">
+                        <span class="text-yellow-500 text-xl">⏰</span>
+                        <span><strong>Orari di Apertura:</strong><br>Lunedì - Domenica: 11:30 - 23:30 (Orario Continuato)</span>
+                    </p>
+                </div>
+
+                <div class="pt-2">
+                    <a href="https://maps.google.com/?q=Via+Antonio+Nanula+Barletta" target="_blank" class="block w-full text-center bg-gray-700 hover:bg-gray-600 text-white font-bold py-2.5 rounded transition">
+                        Apri su Google Maps 🗺️
+                    </a>
+                </div>
+            </div>
+
+            <!-- Mappa Google Maps -->
+            <div class="bg-gray-800 p-2 rounded-xl border border-gray-700 shadow-xl overflow-hidden h-[340px] flex items-center justify-center">
+                <iframe width="100%" height="100%" frameborder="0" style="border:0; border-radius: 8px;" src="https://maps.google.com/maps?q=Via+Antonio+Nanula+Barletta&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen></iframe>
+            </div>
+        </main>
+    </div>
+
+    <!-- Nuovo Footer Professionale Arricchito -->
+    <footer class="bg-gray-950 border-t border-gray-800 text-gray-400 text-sm mt-12">
+        <div class="max-w-6xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <!-- Colonna 1: Info e Brand -->
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 text-lg font-extrabold text-yellow-400">
+                    <span>🥙</span>
+                    <span>Kebab Shop Barletta</span>
+                </div>
+                <p class="text-xs text-gray-400 leading-relaxed">
+                    Il punto di riferimento a Barletta per chi ama il vero kebab artigianale, preparato con ingredienti freschi di prima qualità e ricette autentiche.
+                </p>
+            </div>
+
+            <!-- Colonna 2: Link Utili -->
+            <div class="space-y-3">
+                <h4 class="text-white font-bold text-sm tracking-wider uppercase border-b border-gray-800 pb-2">Link Rapidi</h4>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="{% url 'menu' %}" class="hover:text-yellow-400 transition">📖 Consulta il Menu Digitale</a></li>
+                    <li><a href="https://maps.google.com/?q=Via+Antonio+Nanula+Barletta" target="_blank" class="hover:text-yellow-400 transition">📍 Indicazioni Stradali (Maps)</a></li>
+                    <li><a href="tel:3512284639" class="hover:text-yellow-400 transition">📞 Ordina per Telefono / Asporto</a></li>
+                </ul>
+            </div>
+
+            <!-- Colonna 3: Social & Pagamenti -->
+            <div class="space-y-3">
+                <h4 class="text-white font-bold text-sm tracking-wider uppercase border-b border-gray-800 pb-2">Seguici & Pagamenti</h4>
+                <div class="flex items-center gap-3 pt-1">
+                    <a href="https://instagram.com" target="_blank" class="bg-gray-900 hover:bg-gray-800 text-yellow-400 p-2.5 rounded-lg border border-gray-800 transition text-sm font-semibold flex items-center gap-1.5" title="Instagram">
+                        📸 Instagram
+                    </a>
+                    <a href="https://facebook.com" target="_blank" class="bg-gray-900 hover:bg-gray-800 text-yellow-400 p-2.5 rounded-lg border border-gray-800 transition text-sm font-semibold flex items-center gap-1.5" title="Facebook">
+                        📘 Facebook
+                    </a>
+                    <a href="https://tiktok.com" target="_blank" class="bg-gray-900 hover:bg-gray-800 text-yellow-400 p-2.5 rounded-lg border border-gray-800 transition text-sm font-semibold flex items-center gap-1.5" title="TikTok">
+                        🎬 TikTok
+                    </a>
+                </div>
+                <p class="text-[11px] text-gray-500 pt-2">💳 Accettiamo pagamenti online sicuri e contanti alla consegna o in loco.</p>
+            </div>
+
+        </div>
+
+        <!-- Copyright inferiore -->
+        <div class="border-t border-gray-900 py-4 text-center text-xs text-gray-500">
+            <p>&copy; 2026 Kebab Shop Barletta. Tutti i diritti riservati. Sviluppato con passione per i nostri clienti.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

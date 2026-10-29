@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Cucina - Kebab Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            body { background: white !important; color: black !important; }
+            nav, button, #banner-audio { display: none !important; }
+            .bg-gray-800 { background: white !important; border: 1px solid #ccc !important; color: black !important; }
+        }
+    </style>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/static/sw.js')
+                .then(reg => console.log('Service Worker registrato con successo!', reg))
+                .catch(err => console.log('Registrazione Service Worker fallita:', err));
+            });
+        }
+    </script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4 md:p-6 flex flex-col items-center">
+
+    <!-- Sezione Gestione Scorte Ingredienti in Cucina -->
+    <div class="w-full max-w-6xl bg-gray-800 p-5 rounded-lg shadow-lg border border-gray-700 mb-6">
+        <h2 class="text-lg font-extrabold text-yellow-400 mb-3">📦 Gestione Rapida Magazzino & Scorte (Esauriti / Disponibili)</h2>
+        <div class="flex flex-wrap gap-2">
+            {% for ing in ingredienti_tutti|default:ingredienti %}
+            <a href="{% url 'toggle_ingrediente' ing.id %}" 
+               class="px-3 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 border {% if ing.disponibile %}bg-emerald-900/60 text-emerald-300 border-emerald-500 hover:bg-emerald-800{% else %}bg-red-900/60 text-red-300 border-red-500 hover:bg-red-800{% endif %}">
+                <span>{{ ing.nome }}</span>
+                <span>{% if ing.disponibile %}🟢 Disponibile{% else %}🔴 Esaurito{% endif %}</span>
+            </a>
+            {% empty %}
+                <p class="text-xs text-gray-400 italic">Nessun ingrediente registrato.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Contenitore principale centrato -->
+    <div class="w-full max-w-6xl mx-auto">
+
+        <!-- RIEPILOGO TOTALI DA PREPARARE IN CUCINA -->
+        {% if riepilogo_articoli %}
+        <div class="w-full bg-gray-800 p-5 rounded-lg shadow-lg border border-yellow-500/40 mb-6">
+            <h2 class="text-lg font-extrabold text-yellow-400 mb-3 flex items-center gap-2">
+                <span>🔥 Totali in Preparazione al Momento</span>
+                <span class="text-xs font-normal text-gray-400">(Somma di tutti gli ordini attivi)</span>
+            </h2>
+            <div class="flex flex-wrap gap-3">
+                {% for item in riepilogo_articoli %}
+                    <div class="bg-gray-900 border border-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 shadow">
+                        <span class="text-yellow-400 font-extrabold text-xl">{{ item.totale_quantita }}x</span> 
+                        <span class="text-gray-100 font-bold">{{ item.articoli__prodotto__nome }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Banner Permessi Audio Browser -->
+        <div id="banner-audio" class="mb-6 p-4 bg-red-600 text-white rounded-lg flex flex-col sm:flex-row justify-between items-center gap-3 shadow-xl border-2 border-yellow-400">
+            <div class="flex items-center gap-3 text-base font-bold">
+                <span class="text-3xl animate-bounce">🔔</span>
+                <span>ATTENZIONE: Clicca sul pulsante per attivare l'audio forte delle comande in cucina!</span>
+            </div>
+            <button onclick="abilitaAudio()" class="bg-yellow-400 hover:bg-yellow-300 text-gray-950 font-extrabold px-6 py-2.5 rounded-lg text-sm transition shadow-lg whitespace-nowrap uppercase tracking-wider">
+                🔊 Attiva Campanella Cucina
+            </button>
+        </div>
+
+        <header class="flex flex-col sm:flex-row justify-between items-center mb-8 bg-gray-800 p-6 rounded-lg shadow gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-yellow-500 text-center sm:text-left">👨‍🍳 Kebab Shop - Gestione Cucina</h1>
+                <p class="text-gray-400 text-sm text-center sm:text-left mt-1">Monitor ordini in tempo reale (aggiornamento automatico e notifiche acustiche)</p>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="{% url 'statistiche' %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-emerald-300 bg-[#16382b] border border-[#22c55e] rounded-lg shadow-sm hover:bg-[#1f4a3a] transition duration-200">
+                    📊 Statistiche & Vendite
+                </a>
+
+                <a href="{% url 'menu' %}" class="bg-gray-700 hover:bg-gray-600 text-yellow-400 font-semibold px-4 py-2 rounded-lg transition text-sm shadow">
+                    Vai al Menu 🥙
+                </a>
+            </div>
+        </header>
+
+        {% if ordini %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-center mx-auto">
+                {% for ordine in ordini %}
+                    <!-- CARD ORDINE CON TIMER E URGENZA -->
+                    <div class="comanda-card bg-gray-800 rounded-lg p-5 shadow-lg border-l-4 
+                        {% if ordine.livello_urgenza == 'verde' %} border-emerald-500 
+                        {% elif ordine.livello_urgenza == 'giallo' %} border-yellow-500 
+                        {% else %} border-red-600 animate-pulse {% endif %} flex flex-col justify-between" data-id="{{ ordine.id }}">
+                        
+                        <div>
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <span class="text-xs font-bold px-2 py-1 rounded bg-gray-700 text-yellow-400">Ordine #{{ ordine.id }}</span>
+                                    <h2 class="text-xl font-bold mt-1">{{ ordine.nome_cliente }}</h2>
+                                </div>
+                                <div class="flex flex-col items-end gap-1">
+                                    <span class="text-xs text-gray-400">{{ ordine.creato_il|date:"H:i" }}</span>
+                                    <span class="text-[11px] font-bold px-2 py-0.5 rounded-full 
+                                        {% if ordine.livello_urgenza == 'verde' %} bg-emerald-900/80 text-emerald-300 border border-emerald-600
+                                        {% elif ordine.livello_urgenza == 'giallo' %} bg-yellow-900/80 text-yellow-300 border border-yellow-600
+                                        {% else %} bg-red-900/90 text-red-200 border border-red-500 {% endif %}">
+                                        ⏱️ {{ ordine.minuti_trascorsi|default:"0" }} min
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Dettagli Modalità, Tavolo e Cliente -->
+                            <div class="bg-gray-900/60 rounded p-3 mb-3 text-sm space-y-1">
+                                <p><span class="text-gray-400 font-semibold">Tipo:</span> <span class="text-yellow-400 font-bold">{{ ordine.get_tipo_consegna_display }}</span></p>
+
+                                {% if ordine.tipo_consegna == 'tavolo' or ordine.numero_tavolo %}
+                                    <p class="pt-1"><span class="text-yellow-400 font-extrabold text-base">🍽️ Posto / Tavolo: {{ ordine.numero_tavolo }}</span></p>
+                                {% endif %}
+
+                                {% if ordine.telefono %}
+                                    <p><span class="text-gray-400 font-semibold">Telefono:</span> {{ ordine.telefono }}</p>
+                                {% endif %}
+
+                                {% if ordine.indirizzo %}
+                                    <p><span class="text-gray-400 font-semibold">Indirizzo:</span> {{ ordine.indirizzo }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- RIDER & TRACKING -->
+                            {% if ordine.tipo_consegna == 'domicilio' or ordine.telefono %}
+                            <div class="mb-4 bg-gray-900/90 p-3 rounded-lg border border-gray-700 space-y-2">
+                                <div class="text-xs font-bold text-yellow-400 uppercase tracking-wider">🛵 Gestione Rider & Consegna:</div>
+                                
+                                <div class="grid grid-cols-2 gap-2">
+                                    {% if ordine.telefono %}
+                                    <a href="https://wa.me/39{{ ordine.telefono }}?text=Ciao%20{{ ordine.nome_cliente|urlencode }},%20il%20tuo%20ordine%20Kebab%20Shop%20%23{{ ordine.id }}%20%C3%A8%20in%20preparazione/consegna!" 
+                                       target="_blank" 
+                                       class="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold py-2 px-2 rounded-md flex items-center justify-center gap-1 transition shadow">
+                                        💬 WhatsApp
+                                    </a>
+                                    
+                                    <a href="tel:{{ ordine.telefono }}" 
+                                       class="bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold py-2 px-2 rounded-md flex items-center justify-center gap-1 transition shadow">
+                                        📞 Chiama
+                                    </a>
+                                    {% endif %}
+                                </div>
+
+                                {% if ordine.indirizzo %}
+                                <a href="https://www.google.com/maps/search/?api=1&query={{ ordine.indirizzo|urlencode }}" 
+                                   target="_blank" 
+                                   class="w-full bg-indigo-700 hover:bg-indigo-600 text-white text-xs font-bold py-2 px-2 rounded-md flex items-center justify-center gap-1 transition shadow mt-1">
+                                    🗺️ Mappa (Naviga all'indirizzo)
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            <!-- Badge Pagamento -->
+                            <div class="mb-4">
+                                {% if ordine.pagato %}
+                                    <span class="bg-green-900/60 text-green-300 border border-green-500 text-xs px-2 py-1 rounded font-bold">
+                                        💳 Pagato Online
+                                    </span>
+                                {% else %}
+                                    <span class="bg-yellow-900/60 text-yellow-300 border border-yellow-500 text-xs px-2 py-1 rounded font-bold">
+                                        💶 Da Saldare / Contanti
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- DETTAGLI ARTICOLI E INGREDIENTI -->
+                            <div class="mb-4">
+                                <h3 class="text-xs font-bold text-yellow-400 uppercase tracking-wider mb-1">Dettagli Articoli & Ingredienti:</h3>
+                                
+                                {% if ordine.dettagli_articoli %}
+                                    <div class="bg-gray-900 p-3 rounded-lg text-sm text-gray-200 whitespace-pre-line font-medium border border-gray-700">
+                                        {{ ordine.dettagli_articoli }}
+                                    </div>
+                                {% else %}
+                                    <div class="text-sm italic text-gray-500 bg-gray-900 p-3 rounded-lg">
+                                        Nessun dettaglio aggiuntivo
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <a href="{% url 'stampa_comanda' ordine.id %}" target="_blank" class="mt-4 w-full bg-gray-700 hover:bg-gray-600 text-yellow-400 text-xs font-bold py-2.5 px-3 rounded-lg transition flex items-center justify-center gap-1 shadow border border-gray-600">
+                                🖨️ Stampa Comanda POS
+                            </a>
+                        </div>
+
+                        <div class="mt-4">
+                            <div class="flex justify-between items-center mb-3 pt-3 border-t border-gray-700">
+                                <span class="text-sm text-gray-400 font-semibold">Totale:</span>
+                                <span class="text-lg font-bold text-yellow-400">€{{ ordine.prezzo_totale }}</span>
+                            </div>
+
+                            <form method="POST" action="{% url 'cucina_dashboard' %}" class="space-y-2 pt-2 border-t border-gray-700">
+                                {% csrf_token %}
+                                <!-- INPUT NASCOSTO PER L'ID DELL'ORDINE -->
+                                <input type="hidden" name="ordine_id" value="{{ ordine.id }}">
+
+                                <div class="flex gap-2">
+                                    <select name="stato" class="bg-gray-700 text-white text-xs rounded p-2 flex-grow focus:outline-none focus:border-yellow-500">
+                                        <option value="ricevuto" {% if ordine.stato == 'ricevuto' %}selected{% endif %}>Ricevuto</option>
+                                        <option value="in_preparazione" {% if ordine.stato == 'in_preparazione' %}selected{% endif %}>In Preparazione</option>
+                                        <option value="pronto" {% if ordine.stato == 'pronto' %}selected{% endif %}>Pronto</option>
+                                        <option value="completato" {% if ordine.stato == 'completato' %}selected{% endif %}>Completato</option>
+                                    </select>
+
+                                    <select name="rider_id" class="bg-gray-700 text-white text-xs rounded p-2 focus:outline-none focus:border-yellow-500">
+                                        <option value="" {% if not ordine.rider and not ordine.rider_id %}selected{% endif %}>No Rider</option>
+                                        <option value="Rider 1" {% if ordine.rider == "Rider 1" or ordine.rider_id == 1 %}selected{% endif %}>Rider 1</option>
+                                        <option value="Rider 2" {% if ordine.rider == "Rider 2" or ordine.rider_id == 2 %}selected{% endif %}>Rider 2</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold py-2 rounded text-xs transition shadow">
+                                    Salva Stato & Rider
+                                </button>
+
+                                {% if ordine.telefono %}
+                                <a href="https://wa.me/39{{ ordine.telefono }}?text=Ciao%20{{ ordine.nome_cliente|urlencode }}%20il%20tuo%20ordine%20è%20aggiornato%20a:%20{{ ordine.get_stato_display }}" 
+                                target="_blank" 
+                                class="block w-full text-center bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold py-2 rounded transition">
+                                    💬 Avvia WhatsApp (Stato: {{ ordine.get_stato_display }})
+                                </a>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-20 bg-gray-800 rounded-lg shadow-lg w-full">
+                <div class="text-5xl mb-3">📭</div>
+                <h2 class="text-xl font-bold text-gray-300">Nessun ordine attivo al momento.</h2>
+                <p class="text-gray-500 text-sm mt-1">I nuovi ordini effettuati dai clienti compariranno qui in tempo reale.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Audio campanella -->
+    <audio id="audio-notifica" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let ultimoIdConosciuto = null;
+        let audioAbilitato = localStorage.getItem('cucina_audio_attivo') === 'true';
+
+        if (audioAbilitato) {
+            window.addEventListener('DOMContentLoaded', () => {
+                const banner = document.getElementById('banner-audio');
+                if (banner) banner.style.display = 'none';
+            });
+        }
+
+        function suonaCampanellaForte() {
+            const audio = document.getElementById('audio-notifica');
+            if (!audio) return;
+
+            audio.currentTime = 0;
+            audio.volume = 1.0;
+            audio.play().then(() => {
+                setTimeout(() => {
+                    audio.currentTime = 0;
+                    audio.play().catch(e => console.log(e));
+                }, 800);
+                setTimeout(() => {
+                    audio.currentTime = 0;
+                    audio.play().catch(e => console.log(e));
+                }, 1600);
+            }).catch(err => {
+                console.log("Riproduzione audio bloccata dal browser:", err);
+            });
+        }
+
+        function abilitaAudio() {
+            const audio = document.getElementById('audio-notifica');
+            audio.play().then(() => {
+                audio.pause();
+                audio.currentTime = 0;
+                audioAbilitato = true;
+                localStorage.setItem('cucina_audio_attivo', 'true');
+                
+                suonaCampanellaForte();
+
+                const banner = document.getElementById('banner-audio');
+                if (banner) banner.style.display = 'none';
+            }).catch(err => {
+                alert("Impossibile attivare l'audio. Controlla le impostazioni del browser.");
+                console.log(err);
+            });
+        }
+
+        function controllaNuoviOrdini() {
+            fetch(window.location.href)
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    const primeCard = doc.querySelector('.comanda-card');
+                    const nuovoIdTop = primeCard ? parseInt(primeCard.getAttribute('data-id')) : null;
+
+                    if (ultimoIdConosciuto === null) {
+                        ultimoIdConosciuto = nuovoIdTop;
+                    } else if (nuovoIdTop !== null && nuovoIdTop > ultimoIdConosciuto) {
+                        ultimoIdConosciuto = nuovoIdTop;
+                        
+                        if (audioAbilitato) {
+                            suonaCampanellaForte();
+                        }
+                        
+                        setTimeout(() => location.reload(), 2500);
+                    }
+                })
+                .catch(err => console.error('Errore controllo ordini cucina:', err));
+        }
+
+        setInterval(controllaNuoviOrdini, 5000);
+    </script>
+</body>
+</html>

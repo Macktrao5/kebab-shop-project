@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Comanda #{{ ordine.id }} - Kebab Shop</title>
+    <style>
+        /* CSS specifico per registratori di cassa e stampanti termiche 80mm */
+        @page {
+            size: 80mm auto;
+            margin: 0;
+        }
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            width: 76mm;
+            margin: 2mm auto;
+            padding: 0;
+            color: #000;
+            background: #fff;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+        }
+        .header h1 {
+            font-size: 18px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .info-box {
+            border-bottom: 1px solid #000;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+        .dettagli {
+            white-space: pre-line;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 10px 0;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 10px;
+        }
+        .totale {
+            text-align: right;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 10px;
+            margin-top: 15px;
+        }
+        /* Nasconde elementi non utili durante la stampa */
+        @media print {
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print" style="margin-bottom: 10px; text-align: center;">
+        <button onclick="window.print()" style="padding: 8px 16px; font-weight: bold; background: #000; color: #fff; border: none; border-radius: 4px; cursor: pointer;">
+            🖨️ Ristampa Comanda
+        </button>
+    </div>
+
+    <div class="header">
+        <h1>KEBAB SHOP</h1>
+        <p style="margin: 2px 0;">Barletta</p>
+        <h2 style="margin: 5px 0 0 0; font-size: 20px;">COMANDA #{{ ordine.id }}</h2>
+    </div>
+
+    <div class="info-box">
+        <div class="info-row">
+            <span>Cliente:</span>
+            <span>{{ ordine.nome_cliente }}</span>
+        </div>
+        <div class="info-row">
+            <span>Ora:</span>
+            <span>{{ ordine.creato_il|date:"H:i" }}</span>
+        </div>
+        <div class="info-row" style="margin-top: 4px;">
+            <span>Tipo:</span>
+            <span style="font-size: 15px; text-transform: uppercase;">{{ ordine.get_tipo_consegna_display }}</span>
+        </div>
+        {% if ordine.numero_tavolo %}
+        <div class="info-row" style="font-size: 16px; background: #000; color: #fff; padding: 2px;">
+            <span>TAVOLO / POSTO:</span>
+            <span>{{ ordine.numero_tavolo }}</span>
+        </div>
+        {% endif %}
+        {% if ordine.telefono %}
+        <div class="info-row">
+            <span>Tel:</span>
+            <span>{{ ordine.telefono }}</span>
+        </div>
+        {% endif %}
+        {% if ordine.indirizzo %}
+        <div style="margin-top: 4px;">
+            <strong>Indirizzo:</strong> {{ ordine.indirizzo }}
+        </div>
+        {% endif %}
+    </div>
+
+    <div style="text-align: center; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">
+        --- DETTAGLIO ORDINE ---
+    </div>
+
+    <div class="dettagli">
+{{ ordine.dettagli_articoli }}
+    </div>
+
+    <div class="info-row">
+        <span>PAGAMENTO:</span>
+        <span>{% if ordine.pagato %}PAGATO ONLINE{% else %}DA SALDARE{% endif %}</span>
+    </div>
+
+    <div class="totale">
+        TOTALE: €{{ ordine.prezzo_totale }}
+    </div>
+
+    <div class="footer">
+        *** STAMPA CUCINA ***
+    </div>
+
+    <script>
+        // Avvia la stampa automatica non appena la pagina è caricata
+        window.onload = function() {
+            window.print();
+        };
+    </script>
+</body>
+</html>

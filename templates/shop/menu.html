@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#EAB308">
+    <title>Menu - Kebab Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen font-sans">
+
+    <!-- Navbar -->
+    <nav class="bg-gray-800 border-b border-gray-700 py-4 px-6 flex justify-between items-center sticky top-0 z-50 shadow-md">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'dashboard' %}" class="bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm font-bold px-3 py-2 rounded transition flex items-center gap-1">
+                ← Home
+            </a>
+            <h1 class="text-2xl font-bold text-yellow-400">📖 Menu - {{ ristorante.nome }}</h1>
+        </div>
+        <!-- Pulsante per controllare lo stato degli ordini del cliente -->
+        <div class="flex items-center space-x-3 ml-auto mr-4">
+            
+            {% if request.user.is_authenticated %}
+                
+                <!-- Pulsante CUCINA -->
+                {% if request.user.is_staff or request.user.groups.all.0.name == 'Cucina' %}
+                    <a href="/cucina/" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-3 rounded-lg text-sm transition shadow">
+                        👨‍🍳 Cucina
+                    </a>
+                {% endif %}
+
+                <!-- Pulsante RIDER -->
+                {% if request.user.is_staff or request.user.groups.all.0.name == 'Rider' or request.user.groups.all.0.name == 'Cucina' %}
+                    <a href="/rider/" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg text-sm transition shadow">
+                        🛵 Rider
+                    </a>
+                {% endif %}
+
+                <!-- Pulsante ADMIN -->
+                {% if request.user.is_superuser %}
+                    <a href="/admin/" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-lg text-sm transition shadow">
+                        ⚙️ Admin
+                    </a>
+                {% endif %}
+
+            {% endif %}
+        </div>
+        <div class="flex items-center gap-4">
+            <!-- Pulsante sempre visibile per controllare lo stato dell'ordine -->
+            {% if request.session.ultimo_ordine_id %}
+                <a href="{% url 'stato_ordine' request.session.ultimo_ordine_id %}" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-3 rounded-lg text-sm transition flex items-center gap-1.5 shadow">
+                    📦 I Miei Ordini
+                </a>
+            {% else %}
+                <a href="#" onclick="alert('Nessun ordine recente trovato. Effettua un ordine per visualizzarne lo stato!'); return false;" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-3 rounded-lg text-sm transition flex items-center gap-1.5 shadow opacity-75">
+                    📦 I Miei Ordini
+                </a>
+            {% endif %}
+            <a href="{% url 'carrello' %}" class="bg-yellow-500 hover:bg-yellow-400 text-gray-950 font-bold px-4 py-2 rounded-lg text-sm transition flex items-center gap-2 shadow">
+                <span>🛒 Carrello</span>
+                <span class="bg-gray-900 text-yellow-400 rounded-full w-5 h-5 flex items-center justify-center text-xs font-extrabold">
+                    {{ carrello_quantita_totale|default:0 }}
+                </span>
+            </a>
+            
+        </div>
+    </nav>
+
+    <!-- Contenitore Principale -->
+    <main class="w-full max-w-6xl mx-auto px-4 py-8">
+        
+        <!-- Pulsanti delle Categorie (Corretti con categoria_selezionata) -->
+        <div class="flex flex-wrap gap-3 justify-center mb-8">
+            <a href="?cat=kebab" class="px-6 py-2.5 rounded-lg font-bold transition {% if categoria_selezionata == 'kebab' %}bg-yellow-500 text-gray-900 shadow-lg scale-105{% else %}bg-gray-800 text-gray-300 hover:bg-gray-700{% endif %}">
+                🌯 Kebab (Piadine & Panini)
+            </a>
+            <a href="?cat=pizze" class="px-6 py-2.5 rounded-lg font-bold transition {% if categoria_selezionata == 'pizze' %}bg-yellow-500 text-gray-900 shadow-lg scale-105{% else %}bg-gray-800 text-gray-300 hover:bg-gray-700{% endif %}">
+                🍕 Pizze
+            </a>
+            <a href="?cat=bibite" class="px-6 py-2.5 rounded-lg font-bold transition {% if categoria_selezionata == 'bibite' %}bg-yellow-500 text-gray-900 shadow-lg scale-105{% else %}bg-gray-800 text-gray-300 hover:bg-gray-700{% endif %}">
+                🥤 Bevande & Contorni
+            </a>
+        </div>
+
+        <!-- Griglia dei Prodotti -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for prodotto in prodotti %}
+                <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 shadow-md flex flex-col justify-between">
+                    <div>
+                        {% if prodotto.immagine %}
+                            <img src="{{ prodotto.immagine.url }}" alt="{{ prodotto.nome }}" class="w-full h-40 object-cover rounded mb-3">
+                        {% endif %}
+                        <h3 class="font-bold text-lg text-white">{{ prodotto.nome }}</h3>
+                        <p class="text-gray-400 text-sm mt-1">{{ prodotto.descrizione }}</p>
+                    </div>
+                    <div class="mt-4 flex justify-between items-center pt-3 border-t border-gray-700">
+                        <span class="text-yellow-400 font-bold text-lg">€{{ prodotto.prezzo }}</span>
+                        {% if prodotto.ingredienti.exists or prodotto.personalizzabile or "pizza" in prodotto.nome|lower or "pizza" in prodotto.categoria.nome|lower %}
+                            <!-- Pulsante Personalizza per Piadine, Panini, Pizze e prodotti personalizzabili -->
+                            <a href="{% url 'personalizza_prodotto' prodotto.id %}" class="bg-yellow-500 hover:bg-yellow-400 text-gray-950 font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1">
+                                Personalizza 🛠️
+                            </a>
+                        {% else %}
+                            <!-- Pulsante Aggiungi per Bevande, Contorni, Panzerotti e prodotti standard -->
+                            <a href="{% url 'aggiungi_al_carrello' prodotto.id %}" class="bg-yellow-500 hover:bg-yellow-400 text-gray-950 font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1">
+                                Aggiungi 🛒
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-gray-400 col-span-3 text-center py-12 text-lg">Nessun prodotto disponibile in questa categoria.</p>
+            {% endfor %}
+        </div>
+
+    </main>
+
+</body>
+</html>

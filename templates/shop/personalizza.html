@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personalizza {{ prodotto.nome }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4 md:p-6 flex items-center justify-center">
+    <div class="w-full max-w-xl mx-auto bg-gray-800 p-6 rounded-xl shadow-xl border border-gray-700">
+        
+        <header class="text-center mb-6">
+            <h1 class="text-3xl font-extrabold text-yellow-400 mb-1">Personalizza il tuo {{ prodotto.nome }}</h1>
+            <p class="text-emerald-400 font-bold text-lg">Prezzo base: €{{ prodotto.prezzo|floatformat:2 }}</p>
+        </header>
+
+        <form method="POST" action="{% url 'aggiungi_al_carrello' prodotto.id %}" id="form-personalizza">
+            {% csrf_token %}
+
+            <!-- SELEZIONE INGREDIENTI -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">Scegli Ingredienti e Salse:</span>
+                    <button type="button" id="btn-seleziona-tutto" onclick="toggleSelezionaTutto()" 
+                            class="text-xs bg-yellow-500/20 hover:bg-yellow-500/40 text-yellow-400 font-bold py-1 px-3 rounded-lg border border-yellow-500/30 transition">
+                        ✓ Seleziona Tutto
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5">
+                    {% for ing in ingredienti %}
+                        <label class="flex items-center gap-3 bg-gray-900/80 hover:bg-gray-900 p-3 rounded-lg border border-gray-700 cursor-pointer transition select-none">
+                            <input type="checkbox" name="ingredienti" value="{{ ing.id }}" class="checkbox-ingrediente w-4 h-4 accent-yellow-500 rounded cursor-pointer">
+                            <span class="text-sm font-semibold text-gray-200">{{ ing.nome }}</span>
+                        </label>
+                    {% empty %}
+                        <p class="text-gray-400 text-sm col-span-2 text-center py-4">Nessun ingrediente personalizzabile disponibile.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- SELETTORE QUANTITÀ -->
+            <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-700 mb-6 flex justify-between items-center">
+                <span class="text-sm font-bold text-gray-300">Quantità per questa combinazione:</span>
+                
+                <div class="flex items-center bg-gray-800 border border-gray-600 rounded-lg overflow-hidden">
+                    <button type="button" onclick="modificaQuantita(-1)" class="px-3.5 py-1.5 bg-gray-700 hover:bg-gray-600 text-yellow-400 font-extrabold text-base transition">-</button>
+                    <input type="number" name="quantita" id="input-quantita" value="1" min="1" max="50" readonly class="w-12 text-center bg-transparent font-bold text-white text-base focus:outline-none">
+                    <button type="button" onclick="modificaQuantita(1)" class="px-3.5 py-1.5 bg-gray-700 hover:bg-gray-600 text-yellow-400 font-extrabold text-base transition">+</button>
+                </div>
+            </div>
+
+            <!-- PULSANTI DI AZIONE FLUIDI -->
+            <div class="flex flex-col gap-3">
+                <div class="flex gap-2">
+                    <!-- Aggiunge e resta nella pagina per farne un'altra con ingredienti diversi -->
+                    <button type="submit" name="prossima_azione" value="continua" 
+                            class="w-1/2 bg-gray-700 hover:bg-gray-600 text-yellow-400 font-bold py-3 rounded-xl transition border border-gray-600 text-xs md:text-sm flex items-center justify-center gap-1 shadow">
+                        <span>➕ Altra {{ prodotto.nome }}</span>
+                    </button>
+
+                    <!-- Aggiunge e va subito al carrello/checkout -->
+                    <button type="submit" name="prossima_azione" value="checkout" 
+                            class="w-1/2 bg-yellow-500 hover:bg-yellow-400 text-gray-950 font-extrabold py-3 rounded-xl transition text-xs md:text-sm flex items-center justify-center gap-1 shadow">
+                        <span>🛒 Vai al Carrello</span>
+                    </button>
+                </div>
+
+                <a href="{% url 'menu' %}" class="w-full text-center bg-red-600/20 hover:bg-red-600/40 text-red-400 py-2 rounded-lg text-xs font-bold border border-red-500/30 transition">
+                    Annulla
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+    function modificaQuantita(delta) {
+        const input = document.getElementById('input-quantita');
+        let val = parseInt(input.value) + delta;
+        if (val < 1) val = 1;
+        input.value = val;
+    }
+
+    let tuttiSelezionati = false;
+    function toggleSelezionaTutto() {
+        const checkboxes = document.querySelectorAll('.checkbox-ingrediente');
+        const btn = document.getElementById('btn-seleziona-tutto');
+        tuttiSelezionati = !tuttiSelezionati;
+
+        checkboxes.forEach(cb => cb.checked = tuttiSelezionati);
+        btn.innerText = tuttiSelezionati ? '✗ Deseleziona Tutto' : '✓ Seleziona Tutto';
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Statistiche & Analytics - Kebab Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-white min-h-screen p-4 md:p-8">
+    <div class="max-w-6xl mx-auto space-y-8">
+        
+        <!-- Header con Azioni -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-xl">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-black text-yellow-400 flex items-center gap-2">
+                    📊 Analytics & Report Vendite
+                </h1>
+                <p class="text-xs sm:text-sm text-gray-400 mt-1">Panoramica incassi, metriche chiave e storico comande</p>
+            </div>
+            <a href="{% url 'cucina_dashboard' %}" class="bg-yellow-500 hover:bg-yellow-400 text-gray-950 font-extrabold px-5 py-2.5 rounded-xl text-sm shadow-lg transition flex items-center gap-2">
+                ← Torna alla Cucina
+            </a>
+        </div>
+
+        <!-- KPI GRID: Incassi per Periodo -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <!-- Oggi -->
+            <div class="bg-gray-900 p-5 rounded-2xl border border-emerald-500/30 shadow-lg relative overflow-hidden">
+                <div class="text-xs font-extrabold text-emerald-400 uppercase tracking-wider">Incasso Oggi</div>
+                <p class="text-3xl font-black text-emerald-300 mt-2">€ {{ incasso_oggi|floatformat:2 }}</p>
+                <span class="text-[10px] text-gray-400 mt-1 block">Rispetto a inizio giornata</span>
+            </div>
+
+            <!-- Questa Settimana -->
+            <div class="bg-gray-900 p-5 rounded-2xl border border-blue-500/30 shadow-lg">
+                <div class="text-xs font-extrabold text-blue-400 uppercase tracking-wider">Questa Settimana</div>
+                <p class="text-3xl font-black text-blue-300 mt-2">€ {{ incasso_settimana|floatformat:2 }}</p>
+                <span class="text-[10px] text-gray-400 mt-1 block">Dal lunedì corrente</span>
+            </div>
+
+            <!-- Questo Mese -->
+            <div class="bg-gray-900 p-5 rounded-2xl border border-purple-500/30 shadow-lg">
+                <div class="text-xs font-extrabold text-purple-400 uppercase tracking-wider">Questo Mese</div>
+                <p class="text-3xl font-black text-purple-300 mt-2">€ {{ incasso_mese|floatformat:2 }}</p>
+                <span class="text-[10px] text-gray-400 mt-1 block">Dal 1° del mese</span>
+            </div>
+
+            <!-- Totale Storico -->
+            <div class="bg-gray-900 p-5 rounded-2xl border border-yellow-500/30 shadow-lg">
+                <div class="text-xs font-extrabold text-yellow-400 uppercase tracking-wider">Totale Cumulato</div>
+                <p class="text-3xl font-black text-yellow-300 mt-2">€ {{ totale_cumulato|floatformat:2 }}</p>
+                <span class="text-[10px] text-gray-400 mt-1 block">Tutti gli ordini completati</span>
+            </div>
+
+        </div>
+
+        <!-- SECONDA RIGA KPI: Metodologia di Pagamento & Scontrino Medio -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Scontrino Medio -->
+            <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-lg flex flex-col justify-between">
+                <div>
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Scontrino Medio</h3>
+                    <p class="text-3xl font-extrabold text-white mt-2">€ {{ scontrino_medio|floatformat:2 }}</p>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-800 flex justify-between text-xs text-gray-400">
+                    <span>Ordini Totali Completati:</span>
+                    <span class="font-bold text-yellow-400">{{ totale_ordini_count }}</span>
+                </div>
+            </div>
+
+            <!-- Ripartizione Pagamenti -->
+            <div class="md:col-span-2 bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-lg space-y-4">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Ripartizione Incassi per Metodo</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-gray-950 p-4 rounded-xl border border-gray-800">
+                        <span class="text-xs text-gray-400 font-bold block mb-1">💳 Carte / Pagamento Online (Stripe)</span>
+                        <span class="text-xl font-extrabold text-emerald-400">€ {{ incasso_carte|floatformat:2 }}</span>
+                    </div>
+
+                    <div class="bg-gray-950 p-4 rounded-xl border border-gray-800">
+                        <span class="text-xs text-gray-400 font-bold block mb-1">💵 Contanti / Alla Consegna</span>
+                        <span class="text-xl font-extrabold text-amber-400">€ {{ incasso_contanti|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Box Ordini per Modalità -->
+        <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-lg">
+            <h2 class="text-base sm:text-lg font-bold text-gray-200 mb-4 flex items-center gap-2">
+                🛵 Distribuzione Ordini per Modalità
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="flex justify-between items-center bg-gray-950 p-4 rounded-xl border border-gray-800">
+                    <span class="capitalize font-extrabold text-gray-200 text-sm">Asporto</span>
+                    <span class="bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 font-black px-3 py-1 rounded-lg text-xs shadow">
+                        {{ asporto_count }} ordini
+                    </span>
+                </div>
+                <div class="flex justify-between items-center bg-gray-950 p-4 rounded-xl border border-gray-800">
+                    <span class="capitalize font-extrabold text-gray-200 text-sm">Domicilio</span>
+                    <span class="bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 font-black px-3 py-1 rounded-lg text-xs shadow">
+                        {{ domicilio_count }} ordini
+                    </span>
+                </div>
+                <div class="flex justify-between items-center bg-gray-950 p-4 rounded-xl border border-gray-800">
+                    <span class="capitalize font-extrabold text-gray-200 text-sm">Ritiro</span>
+                    <span class="bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 font-black px-3 py-1 rounded-lg text-xs shadow">
+                        {{ ritiro_count }} ordini
+                    </span>
+                </div>
+                <div class="flex justify-between items-center bg-gray-950 p-4 rounded-xl border border-gray-800">
+                    <span class="capitalize font-extrabold text-gray-200 text-sm">Tavolo</span>
+                    <span class="bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 font-black px-3 py-1 rounded-lg text-xs shadow">
+                        {{ tavolo_count }} ordini
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- NUOVA SEZIONE: TOP 5 PRODOTTI PIÙ VENDUTI -->
+        <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-lg space-y-4">
+            <h2 class="text-base sm:text-lg font-bold text-yellow-400 flex items-center gap-2">
+                🏆 Top 5 Prodotti Più Venduti
+            </h2>
+            
+            {% if prodotti_piu_venduti %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-gray-300">
+                        <thead class="bg-gray-950 text-xs text-gray-400 uppercase tracking-wider rounded-lg">
+                            <tr>
+                                <th class="p-3.5 rounded-l-lg">Posizione & Prodotto</th>
+                                <th class="p-3.5 text-center">Quantità Venduta</th>
+                                <th class="p-3.5 rounded-r-lg text-right">Incasso Generato</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-800/60">
+                            {% for item in prodotti_piu_venduti %}
+                            <tr class="hover:bg-gray-800/40 transition">
+                                <td class="p-3.5 font-bold text-white flex items-center gap-3">
+                                    <span class="text-xs px-2.5 py-1 rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 font-black">
+                                        #{{ forloop.counter }}
+                                    </span>
+                                    {{ item.prodotto__nome }}
+                                </td>
+                                <td class="p-3.5 text-center font-black text-blue-400">
+                                    {{ item.quantita_totale }} pz
+                                </td>
+                                <td class="p-3.5 text-right font-black text-emerald-400">
+                                    € {{ item.incasso_totale|floatformat:2 }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-gray-500 text-sm text-center py-4">Nessun dato relativo ai prodotti venduti.</p>
+            {% endif %}
+        </div>
+
+        <!-- Ultimi Ordini: Layout Adattivo -->
+        <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-lg">
+            <h2 class="text-base sm:text-lg font-bold text-gray-200 mb-4 flex items-center gap-2">
+                📋 Registro Ultimi 10 Ordini
+            </h2>
+            
+            <!-- VISTA SCHEDE PER MOBILE -->
+            <div class="block md:hidden space-y-3">
+                {% for ordine in ultimi_ordini %}
+                <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 shadow flex justify-between items-center">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black bg-gray-900 text-yellow-400 px-2 py-0.5 rounded border border-gray-700">#{{ ordine.id }}</span>
+                            <span class="font-bold text-white text-sm">{{ ordine.nome_cliente }}</span>
+                        </div>
+                        <p class="text-xs text-gray-400 capitalize">Modalità: <span class="text-gray-200 font-medium">{{ ordine.tipo_consegna }}</span></p>
+                    </div>
+                    <div class="text-right space-y-1">
+                        <p class="text-base font-black text-emerald-400">€ {{ ordine.prezzo_totale }}</p>
+                        <span class="inline-block text-[10px] uppercase font-black tracking-wider text-yellow-400 bg-yellow-950/60 border border-yellow-600/50 px-2 py-0.5 rounded-md">
+                            {{ ordine.get_stato_display }}
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-sm text-center py-4">Nessun ordine recente.</p>
+                {% endfor %}
+            </div>
+
+            <!-- VISTA TABELLA PER DESKTOP/TABLET -->
+            <div class="hidden md:block overflow-x-auto">
+                <table class="w-full text-left text-sm text-gray-300">
+                    <thead class="bg-gray-950 text-xs text-gray-400 uppercase tracking-wider rounded-lg">
+                        <tr>
+                            <th class="p-3.5 rounded-l-lg">ID</th>
+                            <th class="p-3.5">Cliente</th>
+                            <th class="p-3.5">Modalità</th>
+                            <th class="p-3.5">Totale</th>
+                            <th class="p-3.5 rounded-r-lg">Stato</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800/60">
+                        {% for ordine in ultimi_ordini %}
+                        <tr class="hover:bg-gray-800/40 transition">
+                            <td class="p-3.5 font-black text-yellow-400">#{{ ordine.id }}</td>
+                            <td class="p-3.5 font-semibold text-white">{{ ordine.nome_cliente }}</td>
+                            <td class="p-3.5 capitalize text-gray-300">{{ ordine.tipo_consegna }}</td>
+                            <td class="p-3.5 text-emerald-400 font-bold">€ {{ ordine.prezzo_totale }}</td>
+                            <td class="p-3.5 uppercase text-xs font-extrabold">
+                                <span class="px-2.5 py-1 rounded-md bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">
+                                    {{ ordine.get_stato_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="p-4 text-center text-gray-500">Nessun ordine recente.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+</body>
+</html>

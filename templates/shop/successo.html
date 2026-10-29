@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordine Ricevuto - Kebab Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4 md:p-6 flex items-center justify-center">
+    <div class="max-w-md w-full bg-gray-800 p-8 rounded-lg shadow-xl text-center border border-green-500">
+        <div class="text-6xl mb-4">✅</div>
+        <h1 class="text-2xl font-extrabold text-yellow-500 mb-2">Ordine Ricevuto con Successo!</h1>
+        <p class="text-gray-300 text-sm mb-6">Grazie <span class="font-bold text-white">{{ ordine.nome_cliente }}</span>, il pagamento è stato confermato e la cucina ha già ricevuto la comanda!</p>
+        
+        <div class="bg-gray-700 rounded-lg p-4 text-left text-sm mb-6 space-y-2 border border-gray-600">
+            <p><span class="text-gray-400 font-semibold">Ordine ID:</span> <span class="text-yellow-400 font-bold">#{{ ordine.id }}</span></p>
+            <p><span class="text-gray-400 font-semibold">Modalità:</span> {{ ordine.get_tipo_consegna_display }}</p>
+            <p><span class="text-gray-400 font-semibold">Totale pagato:</span> <span class="text-yellow-400 font-bold">€{{ ordine.prezzo_totale }}</span></p>
+        </div>
+        
+        <a href="{% url 'menu' %}" class="block bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2.5 px-6 rounded transition text-center">
+            Torna al Menu 🥙
+        </a>
+    </div>
+</body>
+</html>

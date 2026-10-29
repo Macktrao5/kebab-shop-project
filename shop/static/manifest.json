@@ -1,0 +1,15 @@
+{
+  "short_name": "KebabShop",
+  "name": "Kebab Shop Ordering System",
+  "icons": [
+    {
+      "src": "/static/images/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "start_url": "/menu/",
+  "background_color": "#111827",
+  "theme_color": "#EAB308",
+  "display": "standalone"
+}

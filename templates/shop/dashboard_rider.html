@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Rider - Kebab Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-white min-h-screen">
+
+<div class="max-w-md mx-auto p-4 space-y-4">
+    <div class="flex justify-between items-center py-2 border-b border-gray-800">
+        <h1 class="text-xl font-black text-yellow-400 tracking-wider">🛵 Consegne A Domicilio</h1>
+        <a href="{% url 'menu' %}" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg font-bold">🏠 Torna al Menu</a>
+    </div>
+
+    {% for ordine in ordini %}
+    <div class="bg-gray-900 p-4 rounded-xl border border-gray-800 space-y-3 shadow-lg">
+        <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+            <span class="font-bold text-white">Ordine #{{ ordine.id }} - {{ ordine.nome_cliente }}</span>
+            <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-md font-bold uppercase">{{ ordine.stato }}</span>
+        </div>
+
+        <div class="text-sm text-gray-300 space-y-1">
+            <p>📍 <strong>Indirizzo:</strong> {{ ordine.indirizzo }}</p>
+            <p>📞 <strong>Telefono:</strong> <a href="tel:{{ ordine.telefono }}" class="text-yellow-400 underline">{{ ordine.telefono }}</a></p>
+            <p>💰 <strong>Totale:</strong> €{{ ordine.prezzo_totale }} ({{ ordine.pagato|yesno:"Pagato Online,Contanti alla Consegna" }})</p>
+        </div>
+
+        <!-- Azioni Rapide per Navigazione -->
+        <div class="grid grid-cols-2 gap-2 pt-2">
+            <a href="https://maps.google.com/?q={{ ordine.indirizzo|urlencode }}" target="_blank" 
+               class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded-lg text-center transition">
+                🗺️ Naviga
+            </a>
+            <a href="https://wa.me/39{{ ordine.telefono }}" target="_blank" 
+               class="bg-green-600 hover:bg-green-500 text-white text-xs font-bold py-2 rounded-lg text-center transition">
+                💬 WhatsApp
+            </a>
+        </div>
+
+        <!-- Form Cambia Stato -->
+        <form method="POST" action="{% url 'aggiorna_stato_ordine' ordine.id %}" class="pt-2">
+            {% csrf_token %}
+            <div class="flex gap-2">
+                <select name="stato" class="bg-gray-950 text-white text-xs rounded-lg p-2 flex-grow border border-gray-800 focus:outline-none focus:border-yellow-500">
+                    <option value="in_preparazione" {% if ordine.stato == 'in_preparazione' %}selected{% endif %}>In Preparazione</option>
+                    <option value="in_consegna" {% if ordine.stato == 'in_consegna' %}selected{% endif %}>In Consegna</option>
+                    <option value="completato" {% if ordine.stato == 'completato' %}selected{% endif %}>Consegnato / Completato</option>
+                </select>
+                <button type="submit" class="bg-yellow-500 hover:bg-yellow-400 text-gray-950 text-xs font-bold px-4 py-2 rounded-lg transition">
+                    Salva
+                </button>
+            </div>
+        </form>
+    </div>
+    {% empty %}
+    <div class="text-center py-16 space-y-2">
+        <p class="text-4xl">📭</p>
+        <p class="text-gray-400 text-sm">Nessuna consegna attiva al momento.</p>
+    </div>
+    {% endfor %}
+</div>
+
+</body>
+</html>
