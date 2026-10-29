@@ -1,3 +1,4 @@
 Django>=6.1
 gunicorn
 whitenoise
+stripe
