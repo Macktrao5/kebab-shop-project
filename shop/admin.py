@@ -1,6 +1,8 @@
 from django.contrib import admin
 from .models import Ristorante, Prodotto, Ingrediente, Ordine, DettaglioOrdine, Coupon, RicettaIngrediente
 
+admin.site.register(Ristorante)
+
 class RicettaIngredienteInline(admin.TabularInline):
     model = RicettaIngrediente
     extra = 3
