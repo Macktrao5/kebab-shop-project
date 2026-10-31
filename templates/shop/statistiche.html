@@ -122,7 +122,7 @@
             </div>
         </div>
 
-        <!-- NUOVA SEZIONE: TOP 5 PRODOTTI PIÙ VENDUTI -->
+        <!-- TOP 5 PRODOTTI PIÙ VENDUTI -->
         <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-lg space-y-4">
             <h2 class="text-base sm:text-lg font-bold text-yellow-400 flex items-center gap-2">
                 🏆 Top 5 Prodotti Più Venduti
@@ -163,10 +163,10 @@
             {% endif %}
         </div>
 
-        <!-- Ultimi Ordini: Layout Adattivo -->
+        <!-- Registro Tutti gli Ordini -->
         <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-lg">
             <h2 class="text-base sm:text-lg font-bold text-gray-200 mb-4 flex items-center gap-2">
-                📋 Registro Ultimi 10 Ordini
+                📋 Registro Tutti gli Ordini
             </h2>
             
             <!-- VISTA SCHEDE PER MOBILE -->
@@ -179,6 +179,7 @@
                             <span class="font-bold text-white text-sm">{{ ordine.nome_cliente }}</span>
                         </div>
                         <p class="text-xs text-gray-400 capitalize">Modalità: <span class="text-gray-200 font-medium">{{ ordine.tipo_consegna }}</span></p>
+                        <p class="text-[11px] text-gray-500">📅 {{ ordine.data_creazione|date:"d/m/Y H:i" }}</p>
                     </div>
                     <div class="text-right space-y-1">
                         <p class="text-base font-black text-emerald-400">€ {{ ordine.prezzo_totale }}</p>
@@ -188,7 +189,7 @@
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-gray-500 text-sm text-center py-4">Nessun ordine recente.</p>
+                <p class="text-gray-500 text-sm text-center py-4">Nessun ordine registrato.</p>
                 {% endfor %}
             </div>
 
@@ -200,6 +201,7 @@
                             <th class="p-3.5 rounded-l-lg">ID</th>
                             <th class="p-3.5">Cliente</th>
                             <th class="p-3.5">Modalità</th>
+                            <th class="p-3.5">Data & Orario</th>
                             <th class="p-3.5">Totale</th>
                             <th class="p-3.5 rounded-r-lg">Stato</th>
                         </tr>
@@ -210,6 +212,7 @@
                             <td class="p-3.5 font-black text-yellow-400">#{{ ordine.id }}</td>
                             <td class="p-3.5 font-semibold text-white">{{ ordine.nome_cliente }}</td>
                             <td class="p-3.5 capitalize text-gray-300">{{ ordine.tipo_consegna }}</td>
+                            <td class="p-3.5 text-gray-400 text-xs font-medium">{{ ordine.data_creazione|date:"d/m/Y H:i" }}</td>
                             <td class="p-3.5 text-emerald-400 font-bold">€ {{ ordine.prezzo_totale }}</td>
                             <td class="p-3.5 uppercase text-xs font-extrabold">
                                 <span class="px-2.5 py-1 rounded-md bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">
@@ -219,7 +222,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="p-4 text-center text-gray-500">Nessun ordine recente.</td>
+                            <td colspan="6" class="p-4 text-center text-gray-500">Nessun ordine registrato.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

@@ -153,7 +153,7 @@ def statistiche_view(request):
     ritiro_count = ordini_base.filter(tipo_consegna='ritiro').count()
     tavolo_count = ordini_base.filter(tipo_consegna='tavolo').count()
 
-    ultimi_ordini = ordini_base.order_by('-id')[:10]
+    ultimi_ordini = ordini_base.order_by('id')
     
     prodotti_piu_venduti = DettaglioOrdine.objects.exclude(
         ordine__stato='annullato'
