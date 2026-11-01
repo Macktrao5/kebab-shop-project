@@ -163,7 +163,7 @@ class Ordine(models.Model):
         max_length=20, choices=STATO_CHOICES, default='ricevuto'
     )
     pagato = models.BooleanField(default=False)
-    rider = models.CharField(max_length=20, choices=RIDER_CHOICES, default='nessuno')
+    rider = models.CharField(max_length=20, choices=RIDER_CHOICES, default='nessuno', blank=True, null=True)
 
     @property
     def minuti_trascorsi(self):
