@@ -212,7 +212,7 @@
                             <td class="p-3.5 font-black text-yellow-400">#{{ ordine.id }}</td>
                             <td class="p-3.5 font-semibold text-white">{{ ordine.nome_cliente }}</td>
                             <td class="p-3.5 capitalize text-gray-300">{{ ordine.tipo_consegna }}</td>
-                            <td class="p-3.5 text-gray-400 text-xs font-medium">{{ ordine.data_creazione|date:"d/m/Y H:i" }}</td>
+                            <td class="p-3.5 text-gray-400 text-xs font-medium">{{ ordine.creato_il|date:"d/m/Y H:i" }}</td>
                             <td class="p-3.5 text-emerald-400 font-bold">€ {{ ordine.prezzo_totale }}</td>
                             <td class="p-3.5 uppercase text-xs font-extrabold">
                                 <span class="px-2.5 py-1 rounded-md bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">
