@@ -183,9 +183,15 @@
                     </div>
                     <div class="text-right space-y-1">
                         <p class="text-base font-black text-emerald-400">€ {{ ordine.prezzo_totale }}</p>
-                        <span class="inline-block text-[10px] uppercase font-black tracking-wider text-yellow-400 bg-yellow-950/60 border border-yellow-600/50 px-2 py-0.5 rounded-md">
-                            {{ ordine.get_stato_display }}
-                        </span>
+                        {% if ordine.stato == 'completato' %}
+                            <span class="inline-block text-[10px] uppercase font-black tracking-wider text-emerald-400 bg-emerald-950/60 border border-emerald-600/50 px-2 py-0.5 rounded-md">
+                                {{ ordine.get_stato_display }}
+                            </span>
+                        {% else %}
+                            <span class="inline-block text-[10px] uppercase font-black tracking-wider text-yellow-400 bg-yellow-950/60 border border-yellow-600/50 px-2 py-0.5 rounded-md">
+                                {{ ordine.get_stato_display }}
+                            </span>
+                        {% endif %}
                     </div>
                 </div>
                 {% empty %}
@@ -215,9 +221,15 @@
                             <td class="p-3.5 text-gray-400 text-xs font-medium">{{ ordine.creato_il|date:"d/m/Y H:i" }}</td>
                             <td class="p-3.5 text-emerald-400 font-bold">€ {{ ordine.prezzo_totale }}</td>
                             <td class="p-3.5 uppercase text-xs font-extrabold">
-                                <span class="px-2.5 py-1 rounded-md bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">
-                                    {{ ordine.get_stato_display }}
-                                </span>
+                                {% if ordine.stato == 'completato' %}
+                                    <span class="px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                                        {{ ordine.get_stato_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="px-2.5 py-1 rounded-md bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">
+                                        {{ ordine.get_stato_display }}
+                                    </span>
+                                {% endif %}
                             </td>
                         </tr>
                         {% empty %}
