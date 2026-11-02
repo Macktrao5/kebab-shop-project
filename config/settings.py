@@ -124,7 +124,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
 # Media files & Cloudinary Storage Integration (Modern Django STORAGES dict)
 STORAGES = {
     "default": {
@@ -134,6 +133,9 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.StaticCloudinaryStorage",
     },
 }
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticCloudinaryStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
