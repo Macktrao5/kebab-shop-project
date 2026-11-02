@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from django.utils import timezone
+from cloudinary.models import CloudinaryField
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class Ristorante(models.Model):
@@ -14,7 +17,46 @@ class Ristorante(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+class UserProfile(models.Model):
+    ROLE_CHOICES = [
+        ('owner', 'Proprietario / Gestore'),
+        ('cook', 'Cuoco / Pizzaiolo'),
+        ('rider', 'Fattorino / Rider'),
+        ('staff', 'Personale di Sala / Altro'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='cook')
     
+    # Foto tessera/profilo gestita con Cloudinary (persistente al 100%)
+    photo = CloudinaryField('image', blank=True, null=True)
+    
+    # Informazioni sui turni
+    shift_details = models.CharField(max_length=255, blank=True, null=True, help_text="Orario o dettagli dei turni")
+    
+    # Flag rapido per capire se è il proprietario
+    is_owner = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.get_full_name() or self.user.username} - {self.get_role_display()}"
+
+
+# --- I SIGNAL PER LA CREAZIONE AUTOMATICA DEL PROFILO ---
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        # Se è un superutente (es. l'amministratore principale), lo impostiamo come proprietario
+        is_owner_status = instance.is_superuser
+        UserProfile.objects.create(user=instance, is_owner=is_owner_status)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    if hasattr(instance, 'profile'):
+        instance.profile.save()
+
 
 class Ingrediente(models.Model):
     ristorante = models.ForeignKey(Ristorante, on_delete=models.CASCADE, related_name='ingredienti', null=True, blank=True)
@@ -37,7 +79,7 @@ class Ingrediente(models.Model):
 
 
 # ==========================================
-# NUOVI MODELLI: GRUPPI E OPZIONI MODIFICATORI
+# GRUPPI E OPZIONI MODIFICATORI
 # ==========================================
 
 class GruppoModificatore(models.Model):
@@ -188,8 +230,7 @@ class Ordine(models.Model):
 
 class DettaglioOrdine(models.Model):
     """
-    Rappresenta il singolo articolo acquistato all'interno di un ordine 
-    (es. 2x Kebab Piatto con modifiche specifiche).
+    Rappresenta il singolo articolo acquistato all'interno di un ordine.
     """
     ordine = models.ForeignKey(Ordine, on_delete=models.CASCADE, related_name='articoli')
     prodotto = models.ForeignKey(Prodotto, on_delete=models.SET_NULL, null=True)
@@ -203,7 +244,7 @@ class DettaglioOrdine(models.Model):
 
 class DettaglioOrdineModificatore(models.Model):
     """
-    Memorizza le opzioni e salse specifiche scelte dal cliente per quel determinato articolo nell'ordine.
+    Memorizza le opzioni e salse specifiche scelte dal cliente per quel determinato articolo.
     """
     dettaglio_ordine = models.ForeignKey(DettaglioOrdine, on_delete=models.CASCADE, related_name='modificatori_scelti')
     gruppo_nome = models.CharField(max_length=100)
@@ -246,3 +287,29 @@ class RicettaIngrediente(models.Model):
 
     def __str__(self):
         return f"{self.quantita_richiesta}x {self.ingrediente.nome} per {self.prodotto.nome}"
+
+class MembroStaff(models.Model):
+    ROLE_CHOICES = [
+        ('cook', 'Cuoco / Pizzaiolo'),
+        ('rider', 'Fattorino / Rider'),
+        ('staff', 'Personale di Sala / Altro'),
+    ]
+
+    TURNO_TIPO_CHOICES = [
+        ('mattina', 'Squadra Mattina'),
+        ('sera', 'Squadra Sera'),
+    ]
+
+    nome = models.CharField(max_length=50)
+    cognome = models.CharField(max_length=50)
+    ruolo = models.CharField(max_length=20, choices=ROLE_CHOICES, default='cook')
+    
+    # Campo per scegliere se appartengono alla squadra della mattina o della sera
+    turno_tipo = models.CharField(max_length=10, choices=TURNO_TIPO_CHOICES, default='mattina')
+    
+    foto = CloudinaryField('image', blank=True, null=True)
+    turni = models.CharField(max_length=255, blank=True, null=True, help_text="Es. 08:00 - 16:30")
+    attivo_in_servizio = models.BooleanField(default=True, help_text="Spunta se è attualmente attivo")
+
+    def __str__(self):
+        return f"{self.nome} {self.cognome} ({self.get_turno_tipo_display()})"

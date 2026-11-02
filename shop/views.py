@@ -14,7 +14,8 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
-
+from .models import MembroStaff 
+import datetime
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -77,6 +78,18 @@ def menu_view(request, ristorante_slug=None):
 
 
 def cucina_dashboard_view(request):
+    staff_attivo = MembroStaff.objects.filter(attivo_in_servizio=True)
+
+    ora_attuale = datetime.datetime.now().hour
+    
+    # Dalle 06:00 alle 16:59 mostra la squadra della mattina, altrimenti la sera
+    if 6 <= ora_attuale < 17:
+        staff_attivo = MembroStaff.objects.filter(attivo_in_servizio=True, turno_tipo='mattina')
+        turno_attivo_nome = "Squadra Mattina"
+    else:
+        staff_attivo = MembroStaff.objects.filter(attivo_in_servizio=True, turno_tipo='sera')
+        turno_attivo_nome = "Squadra Sera"
+    
     if request.method == 'POST':
         ordine_id = request.POST.get('ordine_id')
         nuovo_stato = request.POST.get('stato')
@@ -101,6 +114,8 @@ def cucina_dashboard_view(request):
     ordini = Ordine.objects.all().order_by('-creato_il')
     ingredienti = Ingrediente.objects.all()
     context = {
+        'staff_attivo': staff_attivo, 
+        'turno_attivo_nome': turno_attivo_nome,  
         'ordini': ordini,
         'ingredienti': ingredienti,  # <-- Questo mancava e faceva rimanere il box vuoto!
     }
@@ -110,6 +125,9 @@ def cucina_dashboard_view(request):
 # 3. STATISTICHE E ANALYTICS MULTI-TENANT
 # -------------------------------------------------------------
 def statistiche_view(request):
+    if not request.user.is_superuser and not (hasattr(request.user, 'profile') and request.user.profile.is_owner):
+        # Se non è il proprietario, lo rispediamo alla home o agli ordini della cucina
+        return redirect('menu')
     ristorante_attivo = Ristorante.objects.filter(attivo=True).first()
     
     if ristorante_attivo:

@@ -89,6 +89,40 @@
             </div>
         </header>
 
+        <div class="card bg-dark text-white shadow-sm mb-4" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px;">
+            <!-- Intestazione centrata con titolo e badge verde (con un bel margine sotto per staccarla) -->
+            <div class="text-center mb-4" style="margin-bottom: 25px !important;">
+                <h5 class="mb-2" style="color: #fbbf24; font-weight: 600;">👨‍🍳 Personale in Servizio</h5>
+                <span class="badge" style="background-color: #198754; color: #fff; font-size: 0.9rem; padding: 6px 14px; border-radius: 8px; font-weight: 500;">
+                    🕒 Turno Attivo: {{ turno_attivo_nome }}
+                </span>
+            </div>
+            
+            <!-- Contenitore dello staff con card compatte e ordinate -->
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: flex-start;">
+                {% for membro in staff_attivo %}
+                    <!-- Ridotta la larghezza massima a 320px così non resta spazio vuoto a destra -->
+                    <div style="flex: 0 1 320px; background-color: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 15px; display: flex; align-items: center;">
+                        <!-- Foto tessera Cloudinary -->
+                        {% if membro.foto %}
+                            <img src="{{ membro.foto.url }}" alt="{{ membro.nome }}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #fbbf24; margin-right: 15px; flex-shrink: 0;">
+                        {% else %}
+                            <div style="width: 60px; height: 60px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: #fff; flex-shrink: 0;">N/D</div>
+                        {% endif %}
+                        
+                        <!-- Dettagli Staff -->
+                        <div>
+                            <h6 class="mb-1 text-white" style="font-weight: bold; font-size: 1rem; margin: 0;">{{ membro.nome }} {{ membro.cognome }}</h6>
+                            <p class="mb-1 text-muted" style="font-size: 0.85rem; margin: 2px 0;">{{ membro.get_ruolo_display }}</p>
+                            <span class="badge" style="background-color: #10b981; color: #fff; font-size: 0.75rem; padding: 4px 8px; border-radius: 6px;">🕒 {{ membro.turni }}</span>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted m-0">Nessun membro dello staff attualmente in servizio per questo turno.</p>
+                {% endfor %}
+            </div>
+        </div>
+
         {% if ordini %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-center mx-auto">
                 {% for ordine in ordini %}
